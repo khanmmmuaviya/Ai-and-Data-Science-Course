@@ -62,7 +62,6 @@ token_list = tokenizer.texts_to_sequences([data])[0]
 input_sequences = []
 for i in range(1, len(token_list)):
     input_sequences.append(token_list[:i+1])
-
 max_sequence_len = max(len(x) for x in input_sequences)
 
 input_sequences = pad_sequences(input_sequences, maxlen=max_sequence_len, padding='pre')
