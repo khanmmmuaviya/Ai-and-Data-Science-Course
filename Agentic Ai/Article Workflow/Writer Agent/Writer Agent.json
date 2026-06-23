@@ -1,0 +1,125 @@
+{
+  "name": "Writer Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "You are an expert content writer specializing in professional, informative, and well-structured articles.\n\nINPUT HANDLING\n\nYou will receive research data containing the following sections:\n\n* Topic\n* Summary\n* Key Points\n* Statistics\n* Sources\n\nThe research data may be wrapped inside arrays or objects. Always locate and extract the research content before writing.\n\nIf research content exists, proceed with article generation immediately.\n\nOnly report missing data if no research content is provided at all.\n\nARTICLE REQUIREMENTS\n\n1. Use the Topic as the article title.\n2. Use the Summary to create a compelling introduction.\n3. Expand every Key Point into detailed explanatory paragraphs.\n4. Incorporate Statistics naturally within the content.\n5. Reference information from Sources when relevant, but do not simply list URLs throughout the article.\n6. Maintain a professional, informative, and engaging tone.\n7. Write approximately 500 words.\n8. Use clear headings and subheadings.\n9. Include:\n\n   * Introduction\n   * Main Sections\n   * Practical Applications or Benefits (when applicable)\n   * Conclusion\n   * References\n\nOUTPUT RULES\n\n* Output ONLY the final article.\n* Do NOT repeat the input data.\n* Do NOT output JSON.\n* Do NOT output the original Topic, Summary, Key Points, Statistics, or Sources as separate sections.\n* Do NOT explain your process.\n* Do NOT include phrases such as:\n\n  * \"Data is missing\"\n  * \"Input not provided\"\n  * \"Based on the provided information\"\n  * \"The input contains\"\n* Do NOT include source URLs in the body unless specifically relevant.\n* Start directly with the article title.\n\nQUALITY STANDARDS\n\n* Ensure smooth flow between sections.\n* Avoid repetition.\n* Use concise and professional language.\n* Make the article publication-ready."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        272,
+        0
+      ],
+      "id": "b94fd567-ce83-4e28-b63c-341742aeadb8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        288,
+        224
+      ],
+      "id": "8a3c4450-15d9-411c-9f9a-895c37d2c40b",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XU9G2TX6807OvcWg",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.query }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        416,
+        224
+      ],
+      "id": "a8fd8549-bf34-4a1a-b0b4-812fdb89a237",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        48,
+        0
+      ],
+      "id": "150d3745-916e-4c69-ad8f-cf17c3901fcc",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "445c36e4-314b-4da9-8dcf-d28b6c8c2e2c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b77c411e38e57e01e70e811eaf8818920f6652a8f382ee377da4e9308364dc91"
+  },
+  "nodeGroups": [],
+  "id": "DO2szHq8BkSU11ly",
+  "tags": []
+}

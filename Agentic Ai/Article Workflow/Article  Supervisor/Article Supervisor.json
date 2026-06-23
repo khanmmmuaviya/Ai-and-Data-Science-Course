@@ -1,0 +1,222 @@
+{
+  "name": "Article Supervisor",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        64,
+        0
+      ],
+      "id": "637ed432-68d3-4b6c-8a0e-8a6b4208a06c",
+      "name": "When chat message received",
+      "webhookId": "e6485070-0d25-412b-ba3c-f4064b19340d"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a Supervisor Agent responsible for coordinating two specialized agents:\n\n1. Research Agent\n\n   * Collects factual information, statistics, trends, examples, and supporting data related to the user's topic.\n   * Returns structured research findings.\n\n2. Writer Agent\n\n   * Uses the research provided by the Research Agent.\n   * Writes a complete, well-structured, engaging, and SEO-friendly article.\n\n## Workflow\n\nWhen a user provides a topic:\n\n### Step 1: Research\n\n* Send the user's topic and requirements to the Research Agent.\n* Ask the Research Agent to gather:\n\n  * Key facts\n  * Statistics (if available)\n  * Industry insights\n  * Relevant examples\n  * Important subtopics\n  * Recent information when applicable\n\n### Step 2: Writing\n\n* Take the complete output from the Research Agent.\n* Send BOTH:\n\n  * The original user request\n  * The research findings\n    to the Writer Agent.\n\n### Step 3: Final Output\n\n* The Writer Agent must create a high-quality article based on the research.\n* Return ONLY the Writer Agent's final article to the user.\n* Do not expose internal workflow, tool calls, or agent communications.\n\n## Important Rules\n\n* Always run Research Agent before Writer Agent.\n* Never allow Writer Agent to write without research data.\n* Pass the full research output to Writer Agent.\n* Ensure factual consistency between research and article.\n* If research is incomplete, request additional research before writing.\n* The final response must contain only the completed article.\n\nExample Flow:\n\nUser → Supervisor Agent\n\nSupervisor → Research Agent\nTopic: \"Benefits of Artificial Intelligence in Healthcare\"\n\nResearch Agent → Supervisor\n[Research Data]\n\nSupervisor → Writer Agent\nTopic: \"Benefits of Artificial Intelligence in Healthcare\"\nResearch: [Research Data]\n\nWriter Agent → Supervisor\n[Final Article]\n\nSupervisor → User\n[Final Article]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        352,
+        0
+      ],
+      "id": "b0bc134d-a620-41f1-82c2-3e1ba1b6f61b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-nano-9b-v2:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        224,
+        224
+      ],
+      "id": "32478988-88bc-4a5a-8584-b316f913a36e",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XU9G2TX6807OvcWg",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "cg2bQDQp9dFjbV33",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/cg2bQDQp9dFjbV33",
+          "cachedResultName": "Research Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        224
+      ],
+      "id": "c6abc426-601f-449f-8d30-893a5c55c3ba",
+      "name": "Call 'Research Agent'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "DO2szHq8BkSU11ly",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/DO2szHq8BkSU11ly",
+          "cachedResultName": "Writer Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        224
+      ],
+      "id": "090c16bf-dfdb-45e8-b4ef-70bcab6ff38f",
+      "name": "Call 'Writer Agent'"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        352,
+        224
+      ],
+      "id": "cdabf6e2-a097-437c-9012-dede78612937",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Research Agent'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Writer Agent'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e4402cc7-8ac4-4bf4-98ea-52f2a66eb6a1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b77c411e38e57e01e70e811eaf8818920f6652a8f382ee377da4e9308364dc91"
+  },
+  "nodeGroups": [],
+  "id": "yy6wNHipb5lBH0pc",
+  "tags": []
+}
