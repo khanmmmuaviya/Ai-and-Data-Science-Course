@@ -1,0 +1,307 @@
+{
+  "name": "Email Supervisor",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        16
+      ],
+      "id": "ef29af1a-90c8-4636-9344-0619e143cfd9",
+      "name": "When chat message received",
+      "webhookId": "eb185271-4a8f-43d7-a6b8-4b797c705c4d",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an AI Assistant with access to the following tools:\n\n1. Gmail Read Tool\n2. Gmail Send Tool\n3. Gmail Reply Tool\n4. SERP Search Tool\n\nYour job is to determine the user's intent and use ONLY the appropriate tool.\n\n## Tool Selection Rules\n\n### Gmail Read Tool\n\nUse ONLY when the user wants to:\n\n* Read emails\n* Read unread emails\n* Read latest email\n* Read emails from a specific sender\n* Search inbox emails\n* Summarize emails\n* Check inbox activity\n\nand don't use when user want to reply or response any email\n\nExamples:\n\n* Read my latest email\n* Show unread emails\n* Read emails from [john@gmail.com](mailto:john@gmail.com)\n* Find emails about invoices\n\nFor email reading requests ALWAYS use Gmail Read Tool and do not use any other tool.\n\n---\n\n### Gmail Send Tool\n\nUse ONLY when the user wants to send a new email.\n\nExamples:\n\n* Send an email to [john@gmail.com](mailto:john@gmail.com)\n* Email my client about the project\n* Send a follow-up message\n\nFor sending requests ALWAYS use Gmail Send Tool and do not use any other tool.\n\n---\n\n### Gmail Reply Tool\n\nUse ONLY when the user wants to reply to an existing email.\n\nExamples:\n\n* Reply to Ahmed's email\n* Respond to the latest email\n* Tell him I will attend the meeting\n* Reply professionally\n\nBefore replying, use Gmail Reply Tool's email context capabilities if available.\n\nDo not use Gmail Read Tool separately unless required by the reply workflow.\n\n---\n\n### SERP Search Tool\n\nUse ONLY when the user wants information from the internet.\n\nExamples:\n\n* Search Google for AI news\n* Find best laptops\n* What is OpenAI?\n* Latest Bitcoin price\n* Research a company\n\nFor internet research ALWAYS use SERP Search Tool.\n\n---\n\n## Important Rules\n\n* Never use multiple tools unless absolutely necessary.\n* Never read emails when the user wants web search.\n* Never perform web search when the user wants email actions.\n* Never send an email when the user asks to read emails.\n* Never reply to an email when the user asks to send a new email.\n* Always choose the single most appropriate tool.\n* Follow the user's exact request."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        16
+      ],
+      "id": "e31a8737-d7b5-4261-adbe-b35b84741fa1",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        352,
+        240
+      ],
+      "id": "c3d66ca9-3bf6-4c91-8eea-1d3aeed2c8f1",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query__q_', ``, 'string') }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-serpapi.serpApiTool",
+      "typeVersion": 1,
+      "position": [
+        480,
+        240
+      ],
+      "id": "c67e0891-52f0-4a9e-a4bd-3a7456664fa3",
+      "name": "Google search in SerpApi",
+      "credentials": {
+        "serpApi": {
+          "id": "9LwgMstNfcLPlmNC",
+          "name": "SerpApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        224,
+        240
+      ],
+      "id": "ddb81b67-20d1-44ea-b90b-55ca0cbb7252",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XU9G2TX6807OvcWg",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lgGXUsoRUZHmOvgk",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/lgGXUsoRUZHmOvgk",
+          "cachedResultName": "Gmail Read"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        240
+      ],
+      "id": "358d8d5b-6176-47d1-941d-72ad013a455f",
+      "name": "Call 'Gmail Read'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "iyoUVRDhDp4q4Ac2",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/iyoUVRDhDp4q4Ac2",
+          "cachedResultName": "Email send"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        240
+      ],
+      "id": "cadad5be-78c0-43cf-8a5e-349a2dd7fb69",
+      "name": "Call 'Email send'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "1os8TC8WC7HoDQBf",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/1os8TC8WC7HoDQBf",
+          "cachedResultName": "Gmail Reply"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        240
+      ],
+      "id": "a7e27893-003f-4203-a6ef-6888929f9f94",
+      "name": "Call 'Email Reply'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google search in SerpApi": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Gmail Read'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Email send'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Email Reply'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7d1a9317-a6b7-45d7-bf0d-169ee9658e87",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b77c411e38e57e01e70e811eaf8818920f6652a8f382ee377da4e9308364dc91"
+  },
+  "nodeGroups": [],
+  "id": "wFjeVMTQ1eElX4je",
+  "tags": []
+}

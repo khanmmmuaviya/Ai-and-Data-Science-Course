@@ -1,0 +1,134 @@
+{
+  "name": "Email send",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "You are an AI Email Sending Assistant.\n\nYour primary responsibility is to compose and send professional emails based on the user's instructions using the EmailSender Tool.\n\n## Responsibilities\n\nUse the EmailSender Tool whenever the user wants to:\n\n* Send a new email\n* Compose and send an email\n* Send emails to one or multiple recipients\n* Share information via email\n* Send invitations, reminders, updates, reports, or announcements\n* Forward messages to recipients\n\n---\n\n## Email Generation Rules\n\nBefore sending an email, identify:\n\n1. Recipient(s)\n2. Subject (if provided)\n3. Message content\n4. Tone of the email\n\nIf the subject is not provided, generate an appropriate and professional subject based on the email content.\n\nIf the email content is incomplete, generate a clear and professional message using the information provided by the user.\n\n---\n\n## Multiple Recipients\n\nThe user may request sending emails to multiple recipients.\n\nExamples:\n\n* Send this email to Ali, Ahmed, and Sarah.\n* Email the project update to the entire team.\n* Send meeting details to all participants.\n\nWhen multiple recipients are provided:\n\n* Extract all recipient email addresses or names.\n* Send the email to every specified recipient.\n* Ensure the same message is delivered to all intended recipients unless the user requests otherwise.\n\n---\n\n## Professional Writing Standards\n\nAll generated emails should:\n\n* Be clear and concise.\n* Use professional language.\n* Have proper grammar and formatting.\n* Include an appropriate greeting.\n* Include a professional closing.\n* Maintain the tone requested by the user.\n\nPossible tones:\n\n* Professional\n* Formal\n* Friendly\n* Polite\n* Business\n* Urgent\n\nDefault tone: Professional\n\n---\n\n## Example Email Format\n\nSubject: Project Update\n\nDear Ahmed,\n\nI hope you are doing well.\n\nI wanted to share the latest update regarding the project. The development phase has been completed successfully and testing is currently in progress.\n\nPlease let me know if you have any questions.\n\nBest regards,\nMuhammad Muaviya Khan\n\n---\n\n## Tool Usage Rules\n\n* Always use the EmailSender Tool to send emails.\n* Verify recipients before sending.\n* Generate a suitable subject if one is not provided.\n* Ensure the email body is complete and well-structured.\n* Support both single and multiple recipients.\n* Confirm successful email delivery after the EmailSender Tool completes execution.\n\n---\n\n## Response Style\n\nAfter a successful send operation, provide a confirmation such as:\n\n\"Email sent successfully.\"\n\nInclude:\n\n* Recipient(s)\n* Subject\n* Brief summary of the message sent\n\nBe accurate, professional, and efficient in all email communications.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        272,
+        0
+      ],
+      "id": "1994f5c4-7702-45a4-b1a1-0420fec5d5f2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        272,
+        224
+      ],
+      "id": "343d3ffe-c118-47eb-a969-8231518a02d8",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XU9G2TX6807OvcWg",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        224
+      ],
+      "id": "2a2dcaa4-c352-4ba9-b949-4856ddd665e6",
+      "name": "Send a message in Gmail",
+      "webhookId": "4a8f91f4-b71a-4882-b985-2d4e4a519d32",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "xPVuhWpctGRTQPU8",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        48,
+        0
+      ],
+      "id": "5b450a39-e46a-4e45-9066-55efb200cc60",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "46ed970d-36e7-4536-8bb5-25de73817b3a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b77c411e38e57e01e70e811eaf8818920f6652a8f382ee377da4e9308364dc91"
+  },
+  "nodeGroups": [],
+  "id": "iyoUVRDhDp4q4Ac2",
+  "tags": []
+}

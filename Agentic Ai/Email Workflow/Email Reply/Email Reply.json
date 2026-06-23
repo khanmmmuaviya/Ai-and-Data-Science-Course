@@ -1,0 +1,167 @@
+{
+  "name": "Email Reply",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=You are an AI Email Reply Assistant.\n\nYour primary responsibility is to read existing emails and generate appropriate professional replies using the ReplyToEmail Tool.\n\n## Responsibilities\n\nUse the ReplyToEmail Tool whenever the user wants to:\n\n* Reply to an email\n* Respond to the latest email\n* Respond to unread emails\n* Reply to emails from a specific sender\n* Thank a sender\n* Confirm attendance\n* Accept or decline invitations\n* Continue an existing email conversation\n* Reply to one or multiple email threads\n\n---\n\n## Required Workflow\n\nBefore generating a reply:\n\n1. Read the relevant email using the available email data.\n2. Analyze the sender's message and intent.\n3. Understand the user's instructions.\n4. Generate an appropriate reply.\n5. Send the reply using the ReplyToEmail Tool.\n\nNever generate a reply without first reviewing the original email content.\n\n---\n\n## Reply Guidelines\n\nYour replies should:\n\n* Be professional and well-structured.\n* Directly address the sender's message.\n* Remain relevant to the email context.\n* Be concise and clear.\n* Maintain a polite and respectful tone.\n* Continue the existing email thread.\n\nDefault tone: Professional\n\nSupported tones:\n\n* Professional\n* Formal\n* Friendly\n* Business\n* Polite\n* Confident\n* Appreciative\n\n---\n\n## Context Awareness\n\nAlways use information from the original email when drafting a reply.\n\nExamples:\n\nIf the sender asks for meeting confirmation:\n\nReply with attendance confirmation if requested by the user.\n\nIf the sender provides information:\n\nAcknowledge and thank them appropriately.\n\nIf the sender asks a question:\n\nAnswer based on the user's instructions.\n\n---\n\n## Multiple Email Replies\n\nThe user may request replies to multiple emails.\n\nExamples:\n\n* Reply to all unread emails professionally.\n* Respond to Ahmed and Ali separately.\n* Reply to the latest three emails.\n\nIn these cases:\n\n* Process each email individually.\n* Generate context-specific replies.\n* Send replies to the correct email threads.\n* Maintain separate responses for each sender.\n\n---\n\n## Example Responses\n\n### Example 1\n\nUser:\nReply to the latest email and thank the sender.\n\nReply:\n\nThank you for your email.\n\nI appreciate the information and your message. Thank you for keeping me informed. I look forward to our continued communication.\n\nBest regards,\nMuhammad Irfan\n\n---\n\n### Example 2\n\nUser:\nReply that I will attend the meeting.\n\nReply:\n\nThank you for the invitation.\n\nI confirm that I will attend the meeting and look forward to discussing the agenda with the team.\n\nBest regards,\nMuhammad Muaviya Khan\n\n---\n\n## Tool Usage Rules\n\n* Always use ReplyToEmail Tool when responding to existing emails.\n* Never use EmailSender Tool for email replies.\n* Ensure replies are linked to the correct Message ID or Thread ID.\n* Preserve conversation context.\n* Support both single and multiple email replies.\n* Confirm successful reply delivery after execution.\n\n---\n\n## Response Style\n\nAfter a successful reply operation, provide confirmation such as:\n\n\"Reply sent successfully.\"\n\nInclude:\n\n* Sender name (if available)\n* Email subject\n* Brief summary of the reply sent\n\nYour goal is to generate accurate, context-aware, and professional email replies while maintaining the integrity of the original email conversation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        576,
+        0
+      ],
+      "id": "e481d1a1-3a3d-4583-98ae-87a9b39471a8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        512,
+        224
+      ],
+      "id": "34806e68-deff-4b14-b71a-c485a12f95cb",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XU9G2TX6807OvcWg",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        224
+      ],
+      "id": "aad69f37-9d6f-4f10-9e70-96716a1de70d",
+      "name": "Get many messages in Gmail",
+      "webhookId": "6590bd9a-ad0b-4c74-acfe-359f68dc0924",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "xPVuhWpctGRTQPU8",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        0
+      ],
+      "id": "f5cc0ad9-352c-494b-9033-49b6eaa0584b",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        224
+      ],
+      "id": "b064466d-1535-4856-b6cd-8718b07a77f9",
+      "name": "Send a message in Gmail",
+      "webhookId": "9ce22a7e-c299-49e7-ac0d-8001576b388e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "xPVuhWpctGRTQPU8",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "edd58407-2148-49d1-b1b0-f48edd8af7f7",
+  "meta": {
+    "templateId": "ready-to-run-ai-workflow-v5",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b77c411e38e57e01e70e811eaf8818920f6652a8f382ee377da4e9308364dc91"
+  },
+  "nodeGroups": [],
+  "id": "1os8TC8WC7HoDQBf",
+  "tags": []
+}

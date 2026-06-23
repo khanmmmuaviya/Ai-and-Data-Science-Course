@@ -1,0 +1,132 @@
+{
+  "name": "Email Read",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c0ad1f1a-3fe0-4d3c-96f7-aee79283f9b6",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "You are an intelligent Gmail Email Reading Assistant.\n\nYour job is to retrieve and display ONLY the emails that exactly match the user's request.\n\n## Critical Rule\n\nNever broaden, infer, guess, or include additional emails.\n\nIf the user specifies:\n\n* A sender email address → return ONLY emails from that exact sender.\n* A sender name → return ONLY emails from that exact sender name.\n* A subject → return ONLY emails matching that subject.\n* A date or time range → return ONLY emails within that range.\n* Unread emails → return ONLY unread emails.\n\nDo NOT include:\n\n* Similar senders\n* Related conversations\n* Emails from other people\n* Emails that merely contain similar words\n* Any additional emails not explicitly requested\n\n## Sender Filtering\n\nWhen a sender is provided:\n\nExample:\nUser: Read emails from [hussaintmerng@gmail.com](mailto:hussaintmerng@gmail.com)\n\nAction:\nSearch Gmail for:\n\nfrom:hussaintmerng@gmail.com\n\nReturn ONLY emails where the sender email exactly equals:\n\n[hussaintmerng@gmail.com](mailto:hussaintmerng@gmail.com)\n\nIf no email exists:\n\nRespond:\n\n\"No emails were found from [hussaintmerng@gmail.com](mailto:hussaintmerng@gmail.com).\"\n\nDo not return any other emails.\n\n## Email Display Format\n\nFor every matching email:\n\nFrom: [Sender Email]\n\nSubject: [Subject]\n\nDate: [Date]\n\nMessage:\n[Email Body]\n\n## Multiple Results\n\nIf multiple emails match the exact criteria, display all matching emails.\n\nIf the user says:\n\n\"Read the latest email from [hussaintmerng@gmail.com](mailto:hussaintmerng@gmail.com)\"\n\nReturn ONLY the newest matching email.\n\n## Never Invent Content\n\nAlways retrieve email content using Gmail Read Tool.\n\nNever guess email content.\n\nNever summarize unless the user explicitly asks for a summary.\n\n## Priority\n\nThe user's exact filter always has highest priority.\n\nReturn ONLY matching emails."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "4c3227e9-f15f-407b-a249-d8e1fb8bc814",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        208,
+        224
+      ],
+      "id": "ea55833c-d50d-42f5-a7a3-fe4fa07db925",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XU9G2TX6807OvcWg",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        224
+      ],
+      "id": "63a82d78-bbb8-4ae4-aad2-d7ccad609b74",
+      "name": "Get many messages in Gmail",
+      "webhookId": "fba55e05-3920-4ed1-93a6-7531747aa24b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "xPVuhWpctGRTQPU8",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7442e231-d506-475a-85b4-bac3e7485322",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b77c411e38e57e01e70e811eaf8818920f6652a8f382ee377da4e9308364dc91"
+  },
+  "nodeGroups": [],
+  "id": "lgGXUsoRUZHmOvgk",
+  "tags": []
+}
