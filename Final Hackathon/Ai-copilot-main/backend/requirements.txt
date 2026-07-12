@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pymongo
+pydantic[email]
+pydantic-settings
+python-dotenv
+python-multipart
+pymupdf
+pillow
