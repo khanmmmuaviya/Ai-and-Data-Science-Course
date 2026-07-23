@@ -11,7 +11,7 @@ except ImportError:
         return ""
 
 try:
-    from ai.chains import build_summary_chain, build_deep_analysis_chain, build_skill_match_chain, build_score_chain, build_hr_chain, build_interview_questions_chain, parse_score, parse_recommendation, parse_skill_lists, parse_interview_questions, _invoke_with_retry
+    from ai.chains import build_extract_chain, build_analyze_chain, build_interview_questions_chain, parse_score, parse_recommendation, parse_skill_lists, parse_interview_questions, parse_extraction, parse_analysis, _invoke_with_retry, get_token_usage_log, get_total_tokens_used
     AI_AVAILABLE = True
 except ImportError:
     AI_AVAILABLE = False
@@ -40,7 +40,7 @@ STATUS_OPTIONS = ["Sourced", "In Progress", "Interview", "Hired"]
 def inject_global_css():
     st.markdown(f"""
     <style>
-    .stApp {{ font-family: {SYSTEM_FONT}; background: #ffffff; color: #0f172a; padding-left: 30px !important; padding-right: 30px !important; }}
+    .stApp {{ font-family: {SYSTEM_FONT}; background: #020617; color: #f8fafc; padding-left: 30px !important; padding-right: 30px !important; }}
     .stApp header[data-testid="stHeader"] {{ display: none !important; }}
     .stApp header[data-testid="stHeader"] [data-testid="stHorizontalBlock"] {{ align-items: center; }}
     .stApp header[data-testid="stHeader"] [data-testid="stHorizontalBlock"] label {{ display: none !important; }}
@@ -78,8 +78,8 @@ def inject_global_css():
     div[data-testid="stTextInput"] input {{ padding-left: 36px !important; }}
 
     :root {{
-        --bg-section: #f9fafc; --border: #e5e7eb; --border-light: #f3f4f6;
-        --text-primary: #0f172a; --text-secondary: #475569; --text-muted: #94a3b8;
+        --bg-section: #111827; --border: #334155; --border-light: #1e293b;
+        --text-primary: #f8fafc; --text-secondary: #cbd5e1; --text-muted: #94a3b8;
         --indigo-700: #4338ca; --indigo-600: #4f46e5; --indigo-500: #6366f1;
         --indigo-400: #818cf8; --indigo-100: #e0e7ff; --indigo-50: #eef2ff;
         --blue-500: #3b82f6; --blue-100: #dbeafe; --blue-50: #eff6ff;
@@ -90,7 +90,7 @@ def inject_global_css():
     }}
 
     /* Header */
-    .nav-header {{ background:#fff; border-bottom:1px solid var(--border); padding:14px 24px;
+    .nav-header {{ background:#0f172a;; border-bottom:1px solid var(--border); padding:14px 24px;
         display:flex; align-items:center; gap:16px; }}
     .nav-logo {{ display:flex; align-items:center; gap:10px; }}
     .nav-logo-icon {{ width:36px; height:36px; border-radius:10px;
@@ -107,7 +107,7 @@ def inject_global_css():
         display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; }}
 
     /* Stats */
-    .stats-bar {{ background:#fff; border-bottom:1px solid var(--border); padding:14px 24px 18px; }}
+    .stats-bar {{ background:#0f172a; border-bottom:1px solid var(--border); padding:14px 24px 18px; }}
     .stats-grid {{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }}
     .stat-card {{ padding:14px 16px; border-radius:14px; display:flex; align-items:center; gap:12px; background:var(--bg-section); }}
     .stat-icon-wrap {{ width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; }}
@@ -119,7 +119,7 @@ def inject_global_css():
     .stat-emerald .stat-icon-wrap {{ background:var(--emerald-50); color:var(--emerald-500); }}
 
     /* Candidate list */
-    .panel-card {{ background:#fff; border:1px solid var(--border-light); border-radius:16px; padding:16px; }}
+    .panel-card {{ background:#0f172a; border:1px solid var(--border-light); border-radius:16px; padding:16px; }}
     .panel-header {{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }}
     .panel-title {{ font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px; font-size:14px; }}
     .count-badge {{ background:var(--bg-section); color:var(--text-secondary); font-size:11px; padding:2px 9px; border-radius:9999px; }}
@@ -174,7 +174,7 @@ def inject_global_css():
     .ai-empty {{ text-align:center; padding:14px 4px; color:#94a3b8; font-size:11px; }}
 
     /* Calendar / agenda panel */
-    .agenda-card {{ background:#fff; border:1px solid var(--border-light); border-radius:16px; padding:14px; }}
+    .agenda-card {{ background:#0f172a; border:1px solid var(--border-light); border-radius:16px; padding:14px; }}
     .agenda-header {{ display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border-light); padding-bottom:10px; margin-bottom:10px; }}
     .agenda-title {{ font-size:11px; font-weight:700; color:var(--text-primary); text-transform:uppercase; font-family:{MONO_FONT}; display:flex; align-items:center; gap:6px; }}
     .agenda-date {{ font-size:10px; font-weight:700; background:var(--bg-section); color:var(--text-muted); padding:3px 8px; border-radius:9999px; }}
@@ -205,9 +205,9 @@ def inject_global_css():
         font-size: 12px !important;
     }}
     .filter-tabs div[data-testid="stButton"] > button:hover {{
-        background: #ffffff !important;
-        color: #000000 !important;
-        border-color: #d1d5db !important;
+        background: #111827 !important;
+        color: #f8fafc !important;
+        border: 1px solid #334155 !important;
     }}
     .filter-tabs div[data-testid="stButton"] > button[data-testid="stBaseButton-primary"] {{
         background: #ffffff !important;
@@ -231,7 +231,7 @@ def inject_global_css():
         box-shadow: none !important;
     }}
     [data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button:hover {{
-        background: #f3f4f6 !important;
+        background: #1e293b !important;
         border-color: #d1d5db !important;
     }}
 
@@ -257,12 +257,12 @@ def inject_global_css():
     }}
 
     /* Upload page */
-    .upload-hero {{ text-align:center; padding:48px 0 32px !important; background: #ffffff !important; }}
+    .upload-hero {{ text-align:center; padding:48px 0 32px !important; background:#020617 !important; }}
     .upload-hero-icon {{ width:64px; height:64px; border-radius:18px; background:linear-gradient(135deg, var(--indigo-500), var(--indigo-700)) !important;
         display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px; }}
     .upload-hero h2 {{ font-size:22px; font-weight:800; color:var(--text-primary) !important; margin:0; }}
     .upload-hero p {{ font-size:13px; color:var(--text-muted) !important; margin:6px 0 0; }}
-    .upload-zone {{ background:#ffffff !important; border:2px dashed var(--border) !important; border-radius:16px; padding:32px; text-align:center;
+    .upload-zone {{ background:#111827 !important; border:2px dashed var(--border) !important; border-radius:16px; padding:32px; text-align:center;
         transition:border-color 0.2s, background 0.2s; cursor:pointer; }}
     .upload-zone:hover {{ border-color:var(--indigo-400) !important; background:var(--indigo-50) !important; }}
     .upload-zone-label {{ font-size:13px; font-weight:600; color:var(--text-primary) !important; margin-bottom:4px; }}
@@ -275,16 +275,16 @@ def inject_global_css():
         font-family:{MONO_FONT}; font-weight:600; margin-bottom:10px; display:flex; align-items:center; gap:6px; }}
 
     /* Upload page — force all widgets white */
-    [data-testid="stVerticalBlock"] div[data-testid="stFileUploader"] {{ background:#ffffff !important; border:2px dashed #d1d5db !important; border-radius:16px !important; padding:24px !important; }}
-    [data-testid="stVerticalBlock"] div[data-testid="stFileUploader"] label {{ color:#334155 !important; font-weight:600 !important; }}
+    [data-testid="stVerticalBlock"] div[data-testid="stFileUploader"] {{ background:#111827 !important; border:2px dashed #d1d5db !important; border-radius:16px !important; padding:24px !important; }}
+    [data-testid="stVerticalBlock"] div[data-testid="stFileUploader"] label {{ color:#f8fafc !important; font-weight:600 !important; }}
     [data-testid="stVerticalBlock"] div[data-testid="stFileUploader"] small {{ color:#94a3b8 !important; }}
-    div[data-testid="stExpander"] {{ background:#ffffff !important; border:1px solid #e5e7eb !important; border-radius:12px !important; }}
-    div[data-testid="stExpander"] summary {{ color:#334155 !important; font-weight:600 !important; background:#f9fafc !important; }}
-    div[data-testid="stTextArea"] textarea {{ background:#f8fafc !important; color:#334155 !important; border:1px solid #e5e7eb !important; border-radius:10px !important; }}
-    div[data-testid="stAlert"] {{ background:#f0fdf4 !important; color:#166534 !important; border:1px solid #bbf7d0 !important; border-radius:10px !important; }}
-    div[data-testid="stAlert"][data-alert-type="warning"] {{ background:#fffbeb !important; color:#92400e !important; border:1px solid #fde68a !important; }}
+    div[data-testid="stExpander"] {{ background:#0f172a !important; border:1px solid #e5e7eb !important; border-radius:12px !important; }}
+    div[data-testid="stExpander"] summary {{ color:#f8fafc !important; font-weight:600 !important; background:#f9fafc !important; }}
+    div[data-testid="stTextArea"] textarea {{ background:#111827 !important; color:#334155 !important; border:1px solid #e5e7eb !important; border-radius:10px !important; }}
+    div[data-testid="stAlert"] {{ background:#052e2b !important; color:#166534 !important; border:1px solid #bbf7d0 !important; border-radius:10px !important; }}
+    div[data-testid="stAlert"][data-alert-type="warning"] {{ background:#451a03 !important; color:#92400e !important; border:1px solid #fde68a !important; }}
     div[data-testid="stAlert"][data-alert-type="error"] {{ background:#fef2f2 !important; color:#991b1b !important; border:1px solid #fecaca !important; }}
-    div[data-testid="stAlert"][data-alert-type="info"] {{ background:#eff6ff !important; color:#1e40af !important; border:1px solid #bfdbfe !important; }}
+    div[data-testid="stAlert"][data-alert-type="info"] {{ background:#172554 !important; color:#1e40af !important; border:1px solid #bfdbfe !important; }}
     div[data-testid="stProgress"] {{ background:#e5e7eb !important; border-radius:9999px !important; }}
     div[data-testid="stProgress"] > div {{ background:#6366f1 !important; border-radius:9999px !important; }}
     </style>
@@ -356,7 +356,7 @@ def render_header():
         st.markdown(f"""
         <div style="display:flex; align-items:center; gap:10px; justify-content:flex-end; margin-top:8px;">
             <div class="nav-user-info">
-                <div class="nav-user-email">khanmmmuaviya@gmail.com</div>
+                <div class="nav-user-email">khanmmmuaviya.com</div>
                 <div class="nav-user-role">Recruiting Manager</div>
             </div>
             <div class="nav-avatar">SR</div>
@@ -393,6 +393,66 @@ def render_stats():
       </div>
     </div>
     """, unsafe_allow_html=True)
+
+# ============================================================
+# TOKEN USAGE HELPERS
+# ============================================================
+
+def get_token_usage_log():
+    if "token_usage" not in st.session_state:
+        st.session_state.token_usage = []
+
+    return st.session_state.token_usage
+
+
+def get_total_tokens_used():
+    usage_log = get_token_usage_log()
+
+    total = 0
+
+    for item in usage_log:
+        total += item.get("tokens", 0)
+
+    return total
+
+
+# ============================================================
+# TOKEN USAGE CHART
+# ============================================================
+
+def render_token_usage():
+    usage_log = get_token_usage_log()
+    total = get_total_tokens_used()
+
+    st.markdown(f"""
+    <div class="panel-card" style="margin-bottom:12px;">
+        <div class="panel-header">
+            <div class="panel-title">{icon("bar-chart", 14)} API Token Usage</div>
+            <span class="count-badge">{len(usage_log)} calls</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px;">
+            <div class="metric-card">
+                <div class="metric-label">Total Tokens</div>
+                <div class="metric-value" style="color:#4f46e5;">{total:,}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Prompt</div>
+                <div class="metric-value" style="font-size:14px;">{sum(e.get("prompt_tokens", 0) for e in usage_log):,}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Completion</div>
+                <div class="metric-value" style="font-size:14px;">{sum(e.get("completion_tokens", 0) for e in usage_log):,}</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if usage_log:
+        chart_data = [{"Call": f"#{i+1}", "Prompt": e.get("prompt_tokens", 0), "Completion": e.get("completion_tokens", 0)} for i, e in enumerate(usage_log)]
+        st.bar_chart(chart_data, x="Call", y=["Prompt", "Completion"], color=["#6366f1", "#a78bfa"], height=200)
+    else:
+        st.markdown('<div style="text-align:center; padding:16px; color:#94a3b8; font-size:12px;">No API calls made yet</div>', unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ============================================================
@@ -792,18 +852,68 @@ def analyze_resume(resume_name: str, resume_text: str, jd_text: str):
     if not AI_AVAILABLE or build_candidate_result is None:
         return {"candidate_name": resume_name, "recommendation": "Error", "justification": "AI pipeline not available."}
     try:
-        summary = _invoke_with_retry(build_summary_chain(), {"resume_text": resume_text})
-        deep_analysis = _invoke_with_retry(build_deep_analysis_chain(), {"resume_text": resume_text})
-        skill_match = _invoke_with_retry(build_skill_match_chain(), {"jd_text": jd_text, "resume_text": resume_text})
-        score_text = _invoke_with_retry(build_score_chain(), {"jd_text": jd_text, "skill_match": skill_match})
-        _, missing, _ = parse_skill_lists(skill_match)
-        score = parse_score(score_text)
-        hr_text = _invoke_with_retry(build_hr_chain(), {"score": str(score), "missing_skills": ", ".join(missing), "skill_match": skill_match})
+        # STEP 1: Extract all structured data from resume (1 API call)
+        extraction_text = _invoke_with_retry(build_extract_chain(), {"resume_text": resume_text})
+        extracted = parse_extraction(extraction_text)
+
+        # STEP 2: Analyze extracted data against JD for predictions (1 API call)
+        extracted_summary = (
+            f"Education: {extracted['education']}\n"
+            f"Experience: {extracted['experience_years']} years\n"
+            f"Email: {extracted['email']}\n"
+            f"Summary: {extracted['career_summary']}\n"
+            f"Skills: {', '.join(extracted['top_skills'])}\n"
+            f"Strengths: {', '.join(extracted['strengths'])}\n"
+            f"Weaknesses: {', '.join(extracted['weaknesses'])}\n"
+            f"Technical Depth: {', '.join(extracted['technical_depth'])}\n"
+            f"Key Achievements: {', '.join(extracted['key_achievements'])}\n"
+            f"Career Trajectory: {', '.join(extracted['career_trajectory'])}\n"
+            f"Cultural Fit: {extracted['cultural_fit']}\n"
+            f"Growth Potential: {extracted['growth_potential']}"
+        )
+        analysis_text = _invoke_with_retry(build_analyze_chain(), {"jd_text": jd_text, "extracted_data": extracted_summary})
+        analysis = parse_analysis(analysis_text)
+
+        # STEP 3: Generate interview questions if recommendation allows (1 API call, conditional)
         interview_text = ""
-        rec, _ = parse_recommendation(hr_text)
-        if rec.lower() in ("hire", "interview"):
-            interview_text = _invoke_with_retry(build_interview_questions_chain(), {"jd_text": jd_text, "summary": summary})
-        result = build_candidate_result(candidate_name=resume_name, summary_text=summary, skill_match_text=skill_match, score_text=score_text, hr_text=hr_text, interview_text=interview_text, deep_analysis_text=deep_analysis)
+        if analysis["recommendation"].lower() in ("hire", "interview"):
+            interview_text = _invoke_with_retry(build_interview_questions_chain(), {"jd_text": jd_text, "summary": extracted["career_summary"]})
+            tech_qs, hr_qs = parse_interview_questions(interview_text)
+        else:
+            tech_qs, hr_qs = [], []
+
+        # Build result
+        result = build_candidate_result(
+            candidate_name=resume_name,
+            summary_text=extracted["career_summary"],
+            skill_match_text=analysis_text,
+            score_text=f"SCORE: {analysis['score']}",
+            hr_text=f"RECOMMENDATION: {analysis['recommendation']}\nJUSTIFICATION: {analysis['justification']}",
+            interview_text=interview_text,
+            deep_analysis_text=extraction_text,
+        )
+
+        # Override with extracted data (more reliable than re-parsing)
+        result.education = extracted["education"]
+        result.experience_years = extracted["experience_years"]
+        result.email = extracted["email"]
+        result.matching_skills = analysis["matching_skills"]
+        result.missing_skills = analysis["missing_skills"]
+        result.extra_skills = analysis["extra_skills"]
+        result.score = analysis["score"]
+        result.recommendation = analysis["recommendation"]
+        result.justification = analysis["justification"]
+        result.technical_questions = tech_qs
+        result.hr_questions = hr_qs
+        result.career_summary = extracted["career_summary"]
+        result.technical_depth = extracted["technical_depth"]
+        result.key_achievements = extracted["key_achievements"]
+        result.career_trajectory = extracted["career_trajectory"]
+        result.strengths = extracted["strengths"]
+        result.weaknesses = extracted["weaknesses"]
+        result.cultural_fit = extracted["cultural_fit"]
+        result.growth_potential = extracted["growth_potential"]
+
         return result.model_dump()
     except Exception as e:
         err_msg = str(e)
@@ -837,7 +947,8 @@ def persist_results(jd_text: str, results: list[dict], resume_map: dict[str, str
                 growth_potential=r.get("growth_potential", ""),
             )
         return True
-    except Exception:
+    except Exception as e:
+        st.warning(f"Analysis succeeded but DB save failed: {e}")
         return False
 
 
@@ -931,7 +1042,6 @@ def render_upload_page():
         """, unsafe_allow_html=True)
 
         jd_file = st.file_uploader("Upload JD", type=["pdf"], key="upload_jd", label_visibility="collapsed")
-        jd_text = ""
 
         if jd_file:
             if not jd_file.name.lower().endswith(".pdf"):
@@ -942,14 +1052,17 @@ def render_upload_page():
                 jd_file.seek(0)
                 result = pdf_extract(jd_file)
                 if result.success:
-                    jd_text = result.text
+                    st.session_state["jd_text"] = result.text
                     st.success(f"Extracted — {result.page_count} page{'s' if result.page_count != 1 else ''}")
                     with st.expander("Preview JD text"):
-                        st.text_area("JD Preview", jd_text, height=160, disabled=True, key="jd_preview")
+                        st.text_area("JD Preview", result.text, height=160, disabled=True, key="jd_preview")
                 else:
                     st.warning(result.warning or "Could not extract text.")
             else:
                 st.warning("PDF reader not available.")
+
+        # Show previously extracted JD if exists
+        jd_text = st.session_state.get("jd_text", "")
 
         st.markdown(f"""
         <div class="upload-section-title" style="margin-top:24px;">{icon("users", 14)} Candidate Resumes</div>
@@ -1114,6 +1227,7 @@ def main():
         ("chats", {}),
         ("page", "dashboard"),
         ("db_loaded", False),
+        ("jd_text", ""),
     ]:
         if key not in st.session_state:
             st.session_state[key] = default
@@ -1151,6 +1265,8 @@ def main():
                 render_ai_chat()
                 st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
                 render_agenda()
+                st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
+                render_token_usage()
 
     render_footer()
 
